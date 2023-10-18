@@ -118,16 +118,12 @@
     <h2>This is the first time you are using Cookies Toolbox. Please enter the path of dota_vpk_updates Github repository.</h2>
     <!-- clickable link -->
     <p>Click <a href="https://github.com/spirit-bear-productions/dota_vpk_updates" target="_blank">here</a> to open the repository in a new tab.</p>
+    <!-- Votre interface utilisateur HTML -->
     <input type="text" id="repoPathInput" placeholder="Enter your GitHub repository path...">
-    <button onclick="setRepositoryPath()">Save Path</button>
+    <button id="saveButton">Save Path</button>
+    <p id="errorText" style="color: red; display: none;">Invalid repository path, please check and try again.</p>
 
     <script src="./renderer.js"></script>
-    <script>
-        function setRepositoryPath() {
-            var repoPath = document.getElementById("repoPathInput").value;
-            ipcRenderer.send('save-repo-path', repoPath);
-        }
-    </script>
 </body>
 
 </html>

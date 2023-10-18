@@ -1,5 +1,4 @@
-const electron = require('electron');
-const { app, BrowserWindow, ipcMain } = electron;
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const readdirp = require('readdirp');
@@ -8,75 +7,91 @@ const file_blacklist = [
 	'soundevents_soundscapes_core.vsndevts',
 	'testkv3_soundevents_diagnostics.vsndevts',
 ];
+const configPath = path.join(app.getPath('userData'), 'config.json');
 let mainWindow;
 let promptWindow;
-const configPath = path.join(app.getPath('userData'), 'config.json');
 
 async function readConfig() {
-  try {
-    const data = await fs.readFile(configPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading config file:', error);
-    return {};
-  }
+	try {
+		return JSON.parse(await fs.readFile(configPath, 'utf-8'));
+	} catch (error) {
+		console.error('Error reading config file:', error);
+		return {};
+	}
 }
 
 async function isRepositoryPathConfigured() {
-  const config = await readConfig();
-  return !!config.repositoryPath;
+	const config = await readConfig();
+
+	// console.log('repositoryPath:', config.repositoryPath);
+	return !!config.repositoryPath;
 }
 
 async function saveRepositoryPath(repoPath) {
-    try {
-        const config = {
-            repositoryPath: repoPath
-        };
-        await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-        console.log('Repository path saved to configuration.');
-    } catch (error) {
-        console.error('Error while saving repository path:', error);
-    }
+	try {
+		const isValid = await isRepoPathValid(repoPath);
+		// console.log('Repository path is valid:', isValid);
+
+		if (!isValid) {
+			dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+			return;
+		}
+
+		const config = {
+			repositoryPath: repoPath
+		};
+
+		await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+		console.log('Repository path saved to configuration.');
+
+		generateKeyValues();
+	} catch (error) {
+		dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+		console.error('Error while saving repository path:', error);
+	}
 }
 
-function createPromptWindow() {
-  promptWindow = new BrowserWindow({
-    width: 800,
-    height: 400,
-    parent: mainWindow,
-    modal: true,
-    show: false,
-    icon: path.join(__dirname, 'images/frostrose.png'), // Spécifiez le chemin de votre icône ici
-    webPreferences: {
-      nodeIntegration: true
-    }
-  });
+async function isRepoPathValid(repoPath) {
+	try {
+		const infFilePath = path.join(repoPath, 'steam.inf');
+		const data = await fs.readFile(infFilePath, 'utf-8');
+		const lines = data.split('\n');
+		const appIDLine = lines.find(line => line.startsWith('appID'));
+		if (!appIDLine) return false;
+		const appID = appIDLine.split('=')[1].trim();
 
-  promptWindow.loadURL(`file://${path.join(__dirname, 'prompt.html')}`);
-
-  promptWindow.once('ready-to-show', () => {
-    promptWindow.show();
-  });
-
-  promptWindow.webContents.on('did-finish-load', () => {
-        const pathToSend = path.toString(); // convertir l'objet en chaîne de caractères
-        promptWindow.webContents.send('repository-path', pathToSend);
-    });
-
-  ipcMain.on('repository-path', (event, path) => {
-	console.log('Received repository path:', path);
-    // Stockez le chemin du référentiel dans la configuration ou la base de données locale ici
-    // Fermez la fenêtre contextuelle ici
-    promptWindow.close();
-    // Continuez avec le chargement de l'application ici
-    createMainWindow();
-  });
+		return appID === '570';
+	} catch (error) {
+		console.error('Error occurred while checking repository path validity:', error);
+		return false;
+	}
 }
 
 ipcMain.on('save-repo-path', (event, repoPath) => {
 	console.log('Received repository path:', repoPath);
-    saveRepositoryPath(repoPath);
+	saveRepositoryPath(repoPath);
 });
+
+function createPromptWindow() {
+	promptWindow = new BrowserWindow({
+		width: 800,
+		height: 400,
+		parent: mainWindow,
+		modal: true,
+		show: false,
+		icon: path.join(__dirname, 'images/frostrose.png'),
+		webPreferences: {
+			contextIsolation: true,
+			preload: path.join(__dirname, 'preload.js')
+		}
+	});
+
+	promptWindow.loadURL(`file://${path.join(__dirname, 'prompt.html')}`);
+
+	promptWindow.once('ready-to-show', () => {
+		promptWindow.show();
+	});
+}
 
 function extractVSNDData(data) {
 	const lines = data.split('\n');
@@ -125,7 +140,6 @@ function extractVSNDData(data) {
 				line = line.slice(14);
 			}
 
-			// fail-safe
 			keyValuePairs[key].vsnd_files.push(line);
 		}
 	}
@@ -134,16 +148,63 @@ function extractVSNDData(data) {
 }
 
 async function createMainWindow() {
-	console.log('Generate keyvalues script started.');
+	mainWindow = new BrowserWindow({
+		width: 1000,
+		height: 600,
+		icon: path.join(__dirname, 'images/frostrose.png'),
+		webPreferences: {
+			contextIsolation: true,
+			preload: path.join(__dirname, 'preload.js')
+		}
+	});
 
-	const directoryPath = path.join(__dirname, '../dota_vpk_updates/soundevents/');
+	mainWindow.loadFile('index.html');
+
+	if (promptWindow) {
+		promptWindow.close();
+	}
+}
+
+async function createConfigFileIfNotExists() {
+	try {
+		await fs.access(configPath);
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			try {
+				await fs.writeFile(configPath, JSON.stringify({}));
+				console.log('Config file created.');
+			} catch (error) {
+				console.error('Error creating config file:', error);
+			}
+		}
+	}
+}
+
+async function generateKeyValues() {
+	console.log('Generate keyvalues script started.');
+	const config = await readConfig();
+
+	if (!config.repositoryPath) {
+		dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+		console.error('Repository path not configured.');
+		return;
+	}
+
+	const repositoryPath = config.repositoryPath;
+	const isValid = await isRepoPathValid(repositoryPath);
+
+	if (!isValid) {
+		dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+		console.error('Repository path is invalid:', repositoryPath);
+		return;
+	}
+
 	let startTime = new Date().getTime();
 
 	await fs.writeFile('keyvalues.json', '{\n');
 
 	try {
-		const files = await readdirp.promise(directoryPath, { fileFilter: '*.vsndevts' });
-
+		const files = await readdirp.promise(repositoryPath, { fileFilter: '*.vsndevts' });
 		console.log(`Found ${files.length} .vsndevts files.`);
 
 		for (const file of files) {
@@ -152,7 +213,7 @@ async function createMainWindow() {
 				continue;
 			}
 
-			const filePath = path.join(directoryPath, file.path);
+			const filePath = path.join(repositoryPath, file.path);
 			// console.log(`Reading file ${filePath}...`);
 
 			try {
@@ -161,6 +222,7 @@ async function createMainWindow() {
 				let jsonData = JSON.stringify(keyValuePairs, null, 2);
 
 				// console.log(`Writing file ${filePath}...`);
+
 				// delete first and last line
 				let lines = jsonData.split('\n');
 				lines.shift();
@@ -186,48 +248,23 @@ async function createMainWindow() {
 
 		console.log(`Reading all files took ${timeDiffSecondsRounded} seconds.`);
 	} catch (error) {
+		dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
 		console.error('Error occurred during file reading:', error);
 	}
 
 	await fs.appendFile('keyvalues.json', '\n}');
-
-	mainWindow = new BrowserWindow({
-		width: 1000,
-		height: 600,
-        icon: path.join(__dirname, 'images/frostrose.png'), // Spécifiez le chemin de votre icône ici
-		webPreferences: {
-			nodeIntegration: true
-		}
-	});
-
-	mainWindow.loadFile('index.html');
-}
-
-async function createConfigFileIfNotExists() {
-  try {
-    await fs.access(configPath);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      try {
-        await fs.writeFile(configPath, JSON.stringify({}));
-        console.log('Config file created.');
-      } catch (error) {
-        console.error('Error creating config file:', error);
-      }
-    }
-  }
+	createMainWindow();
 }
 
 app.whenReady().then(async () => {
-  await createConfigFileIfNotExists();
-  const has_config = await isRepositoryPathConfigured();
-  console.log('App is ready, path configured:', has_config);
+	await createConfigFileIfNotExists();
+	const has_config = await isRepositoryPathConfigured();
 
-  if (has_config) {
-    createMainWindow();
-  } else {
-    createPromptWindow();
-  }
+	if (has_config) {
+		generateKeyValues();
+	} else {
+		createPromptWindow();
+	}
 });
 
 app.on('window-all-closed', () => {
@@ -236,12 +273,14 @@ app.on('window-all-closed', () => {
 	}
 });
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    if (isRepositoryPathConfigured()) {
-      createMainWindow();
-    } else {
-      createPromptWindow();
-    }
-  }
+app.on('activate', async () => {
+	if (BrowserWindow.getAllWindows().length === 0) {
+	const has_config = await isRepositoryPathConfigured();
+
+	if (has_config) {
+		generateKeyValues();
+	} else {
+		createPromptWindow();
+	}
+	}
 });
