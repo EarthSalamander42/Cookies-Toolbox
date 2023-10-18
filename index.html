@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Cookies Toolbox</title>
+
+		<style>
+			body {
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				background: #1e1e1e; /* fallback for old browsers */
+				background: linear-gradient(145deg, #1a1a1a, #2e1a2a);
+				color: #ffffff;
+				text-align: center;
+				padding-top: 60px;
+				position: relative;
+				height: 86vh;
+			}
+
+			h1 {
+				color: #ffffff;
+				font-size: 30px;
+			}
+
+			h2 {
+				color: #ffffff;
+				font-size: 20px;
+			}
+
+			p {
+				color: #a0a0a0;
+			}
+
+			input {
+				padding: 10px;
+				margin: 10px;
+				width: 400px;
+				border-radius: 4px;
+				border: none;
+				outline: none;
+				color: #000000;
+			}
+
+			button {
+				padding: 10px 20px;
+				background-color: #4CAF50;
+				color: white;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				margin-top: 10px;
+				transition: background-color 0.3s;
+			}
+
+			button:hover {
+				background-color: #45a049;
+			}
+
+			.value {
+				margin-top: 20px;
+				padding: 10px;
+				background-color: #333;
+				color: #fff;
+				border-radius: 5px;
+			}
+
+			.heart {
+				color: #f39c12;
+			}
+			
+			.credits a {
+				color: #ff5733; /* Set your desired color here */
+				text-decoration: none;
+			}
+			
+			.copy-status {
+				margin-top: 10px;
+				padding: 10px;
+				color: #f39c12;
+				border-radius: 5px;
+				opacity: 0;
+				transition: opacity 0.5s ease;
+			}
+
+			.credits {
+				display: flex;
+				justify-content: flex-end;
+				align-items: center;
+				position: absolute;
+				bottom: 10px;
+				right: 10px;
+				color: #a0a0a0;
+				font-size: 12px;
+			}
+
+			.footer {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				position: absolute;
+				bottom: 10px;
+				width: 100%;
+			}
+
+			.footer div {
+				margin: 0 10px;
+			}
+
+			.footer img {
+				transition: transform 0.3s;
+			}
+
+			.footer img:hover {
+				transform: scale(1.2);
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>A Dota 2 Toolkit for custom games development</h1>
+		<h2>vsnd to sound name</h2>
+		<input type="text" id="keyInput" placeholder="Enter a .vsnd file path...">
+		<button onclick="getValue()">Find sound name</button>
+		<div id="result"></div>
+
+		<footer class="footer">
+			<div>
+				<a href="https://github.com/EarthSalamander42" target="_blank">
+					<img src="images/github.svg" alt="GitHub" width="30" height="30">
+				</a>
+			</div>
+			<div>
+				<a href="https://steamcommunity.com/id/DendiR/" target="_blank">
+					<img src="images/steam.svg" alt="Steam" width="30" height="30">
+				</a>
+			</div>
+			<div>
+				<a href="https://frostrose-studio.com" target="_blank">
+					<img src="images/frostrose.png" alt="Website" width="30" height="30">
+				</a>
+			</div>
+		</footer>
+
+		<p class="credits">
+			Made&nbsp;with&nbsp;<span class="heart">❤</span>&nbsp;by&nbsp;<a href="https://steamcommunity.com/id/DendiR/" target="_blank">Cookies</a>
+		</p>
+
+		<script>
+			// Function to load the JSON data into local storage
+			function loadJSONToLocalStorage() {
+				fetch('keyvalues.json')
+					.then(response => response.json())
+					.then(data => {
+						localStorage.setItem('keyValues', JSON.stringify(data));
+					})
+					.catch(error => console.error('Error fetching data:', error));
+			}
+
+			// Call this function to load data into local storage on page load
+			window.onload = loadJSONToLocalStorage;
+
+			function findKeyFromValue(value) {
+				// Read the table from the JSON file
+				var table = JSON.parse(localStorage.getItem('keyValues'));
+
+				// Find the key corresponding to the value in the table
+				for (var key in table) {
+					if (table.hasOwnProperty(key)) {
+						// table[key].vsnd_files is an array of strings, 1 of them may match the value
+						for (var i = 0; i < table[key].vsnd_files.length; i++) {
+							if (table[key].vsnd_files[i] === value) {
+								return key;
+							}
+						}
+					}
+				}
+				return null; // If no matching key is found
+			}
+
+			function getValue() {
+				var value = document.getElementById("keyInput").value;
+				var key = findKeyFromValue(value);
+				var resultElement = document.getElementById("result");
+
+				if (key) {
+					resultElement.innerHTML = `<p class="value">The key for value '<strong>${value}</strong>' is: <span style="color: #f39c12;">${key}</span></p>`;
+					var copyButton = document.createElement("button");
+					copyButton.innerHTML = "Copy to clipboard";
+					copyButton.onclick = function() {
+						copyToClipboard(key);
+					};
+					resultElement.appendChild(copyButton);
+				} else {
+					resultElement.innerText = "Value not found";
+				}
+			}
+
+			function copyToClipboard(value) {
+				var tempInput = document.createElement("input");
+				tempInput.value = value;
+				document.body.appendChild(tempInput);
+				tempInput.select();
+				document.execCommand("copy");
+				document.body.removeChild(tempInput);
+						
+				var resultElement = document.getElementById("result");
+				var copyStatusElement = document.createElement("p");
+				copyStatusElement.textContent = "Value copied to clipboard: " + value;
+				copyStatusElement.classList.add("copy-status");
+				resultElement.appendChild(copyStatusElement);
+						
+				// Ensure that the transition takes place when the element is added
+				setTimeout(function () {
+					copyStatusElement.style.opacity = 1;
+				}, 0);
+				
+				// Automatically fade out the message after 3 seconds
+				setTimeout(function () {
+					copyStatusElement.style.opacity = 0;
+					setTimeout(function () {
+						resultElement.removeChild(copyStatusElement);
+					}, 500);
+				}, 3000);
+			}
+
+			function openInNewTab(url) {
+				const link = document.createElement('a');
+				link.setAttribute('target', '_blank');
+				link.setAttribute('href', url);
+				link.click();
+			}
+		</script>
+	</body>
+</html>

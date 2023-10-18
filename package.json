@@ -1,0 +1,29 @@
+{
+  "name": "cookies-toolbox",
+  "version": "1.0.0",
+  "description": "A GUI to find the right Dota 2 sound name given the .vsnd of it.",
+  "main": "index.js",
+  "scripts": {
+    "test": "dev",
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "author": "Cookies",
+  "license": "ISC",
+  "dependencies": {
+    "readdirp": "^3.6.0"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "build": {
+    "appId": "com.frostrose-studio.cookies-toolbox",
+    "mac": {
+        "icon": "images/frostrose.png"
+    },
+    "win": {
+        "icon": "images/frostrose.png"
+    }
+  }
+}

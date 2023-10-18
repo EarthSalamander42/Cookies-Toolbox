@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cookies Toolbox Configuration</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #ffffff;
+            text-align: center;
+            position: relative;
+            height: 86vh;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 30px;
+        }
+
+        h2 {
+            color: #ffffff;
+            font-size: 20px;
+        }
+
+        p {
+            color: #a0a0a0;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 400px;
+            border-radius: 4px;
+            border: none;
+            outline: none;
+            color: #000000;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .value {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+        }
+
+        .heart {
+            color: #f39c12;
+        }
+
+        .credits a {
+            color: #ff5733;
+            text-decoration: none;
+        }
+
+        .copy-status {
+            margin-top: 10px;
+            padding: 10px;
+            color: #f39c12;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .credits {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: #a0a0a0;
+            font-size: 12px;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+        }
+
+        .footer div {
+            margin: 0 10px;
+        }
+
+        .footer img {
+            transition: transform 0.3s;
+        }
+
+        .footer img:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Configure Repository Path</h1>
+    <h2>This is the first time you are using Cookies Toolbox. Please enter the path of dota_vpk_updates Github repository.</h2>
+    <!-- clickable link -->
+    <p>Click <a href="https://github.com/spirit-bear-productions/dota_vpk_updates" target="_blank">here</a> to open the repository in a new tab.</p>
+    <input type="text" id="repoPathInput" placeholder="Enter your GitHub repository path...">
+    <button onclick="setRepositoryPath()">Save Path</button>
+
+    <script src="./renderer.js"></script>
+    <script>
+        function setRepositoryPath() {
+            var repoPath = document.getElementById("repoPathInput").value;
+            ipcRenderer.send('save-repo-path', repoPath);
+        }
+    </script>
+</body>
+
+</html>
