@@ -11,6 +11,10 @@ const configPath = path.join(app.getPath('userData'), 'config.json');
 let mainWindow;
 let promptWindow;
 
+function sendConfigError() {
+	dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+}
+
 async function readConfig() {
 	try {
 		return JSON.parse(await fs.readFile(configPath, 'utf-8'));
@@ -33,7 +37,7 @@ async function saveRepositoryPath(repoPath) {
 		// console.log('Repository path is valid:', isValid);
 
 		if (!isValid) {
-			dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+			sendConfigError();
 			return;
 		}
 
@@ -46,7 +50,7 @@ async function saveRepositoryPath(repoPath) {
 
 		generateKeyValues();
 	} catch (error) {
-		dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+		sendConfigError();
 		console.error('Error while saving repository path:', error);
 	}
 }
@@ -185,7 +189,7 @@ async function generateKeyValues() {
 	const config = await readConfig();
 
 	if (!config.repositoryPath) {
-		dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+		sendConfigError();
 		console.error('Repository path not configured.');
 		return;
 	}
@@ -194,7 +198,7 @@ async function generateKeyValues() {
 	const isValid = await isRepoPathValid(repositoryPath);
 
 	if (!isValid) {
-		dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+		sendConfigError();
 		console.error('Repository path is invalid:', repositoryPath);
 		return;
 	}
@@ -248,7 +252,7 @@ async function generateKeyValues() {
 
 		console.log(`Reading all files took ${timeDiffSecondsRounded} seconds.`);
 	} catch (error) {
-		dialog.showErrorBox('Invalid Repository', 'The repository path is not valid. Please make sure the path is correct and the repository has the necessary files. The directory must contain a file called "steam.inf".');
+		sendConfigError();
 		console.error('Error occurred during file reading:', error);
 	}
 
@@ -275,12 +279,12 @@ app.on('window-all-closed', () => {
 
 app.on('activate', async () => {
 	if (BrowserWindow.getAllWindows().length === 0) {
-	const has_config = await isRepositoryPathConfigured();
+		const has_config = await isRepositoryPathConfigured();
 
-	if (has_config) {
-		generateKeyValues();
-	} else {
-		createPromptWindow();
-	}
+		if (has_config) {
+			generateKeyValues();
+		} else {
+			createPromptWindow();
+		}
 	}
 });

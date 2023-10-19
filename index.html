@@ -129,8 +129,8 @@
 				</a>
 			</div>
 			<div>
-				<a href="https://steamcommunity.com/id/DendiR/" target="_blank">
-					<img src="images/steam.svg" alt="Steam" width="30" height="30">
+				<a href="https://www.paypal.com/donate/?hosted_button_id=PLHEBEMKWL9DQ" target="_blank">
+					<img src="images/paypal.png" alt="Paypal" width="30" height="30">
 				</a>
 			</div>
 			<div>
@@ -165,7 +165,6 @@
 				// Find the key corresponding to the value in the table
 				for (var key in table) {
 					if (table.hasOwnProperty(key)) {
-						// table[key].vsnd_files is an array of strings, 1 of them may match the value
 						for (var i = 0; i < table[key].vsnd_files.length; i++) {
 							if (table[key].vsnd_files[i] === value) {
 								return key;
@@ -173,6 +172,7 @@
 						}
 					}
 				}
+
 				return null; // If no matching key is found
 			}
 
@@ -183,11 +183,13 @@
 
 				if (key) {
 					resultElement.innerHTML = `<p class="value">The key for value '<strong>${value}</strong>' is: <span style="color: #f39c12;">${key}</span></p>`;
+
 					var copyButton = document.createElement("button");
 					copyButton.innerHTML = "Copy to clipboard";
 					copyButton.onclick = function() {
 						copyToClipboard(key);
 					};
+
 					resultElement.appendChild(copyButton);
 				} else {
 					resultElement.innerText = "Value not found";
@@ -199,13 +201,15 @@
 				tempInput.value = value;
 				document.body.appendChild(tempInput);
 				tempInput.select();
+
 				document.execCommand("copy");
 				document.body.removeChild(tempInput);
 						
-				var resultElement = document.getElementById("result");
 				var copyStatusElement = document.createElement("p");
 				copyStatusElement.textContent = "Value copied to clipboard: " + value;
 				copyStatusElement.classList.add("copy-status");
+				
+				var resultElement = document.getElementById("result");
 				resultElement.appendChild(copyStatusElement);
 						
 				// Ensure that the transition takes place when the element is added
@@ -216,6 +220,7 @@
 				// Automatically fade out the message after 3 seconds
 				setTimeout(function () {
 					copyStatusElement.style.opacity = 0;
+
 					setTimeout(function () {
 						resultElement.removeChild(copyStatusElement);
 					}, 500);
