@@ -1,6 +1,6 @@
 {
-  "name": "mod-craft",
-  "version": "1.0.0",
+  "name": "ModCraft",
+  "version": "0.2.0",
   "description": "A versatile toolkit for Dota 2 modding, enabling easy customization and development for modders.",
   "main": "src/index.js",
   "scripts": {
