@@ -1,4 +1,4 @@
-# Cookies Toolbox
+# ModCraft
 
 An app built to help developing Dota 2 custom games.
 

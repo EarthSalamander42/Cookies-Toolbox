@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Cookies Toolbox</title>
+		<title>ModCraft</title>
 
 		<style>
 			body {
@@ -124,18 +124,18 @@
 
 		<footer class="footer">
 			<div>
-				<a href="https://github.com/EarthSalamander42" target="_blank">
-					<img src="images/github.svg" alt="GitHub" width="30" height="30">
+				<a href="https://github.com/EarthSalamander42/ModCraft" target="_blank">
+					<img src="../images/github.svg" alt="GitHub" width="30" height="30">
 				</a>
 			</div>
 			<div>
 				<a href="https://www.paypal.com/donate/?hosted_button_id=PLHEBEMKWL9DQ" target="_blank">
-					<img src="images/paypal.png" alt="Paypal" width="30" height="30">
+					<img src="../images/paypal.png" alt="Paypal" width="30" height="30">
 				</a>
 			</div>
 			<div>
 				<a href="https://frostrose-studio.com" target="_blank">
-					<img src="images/frostrose.png" alt="Website" width="30" height="30">
+					<img src="../images/frostrose.png" alt="Website" width="30" height="30">
 				</a>
 			</div>
 		</footer>
@@ -147,7 +147,7 @@
 		<script>
 			// Function to load the JSON data into local storage
 			function loadJSONToLocalStorage() {
-				fetch('keyvalues.json')
+				fetch('../keyvalues.json')
 					.then(response => response.json())
 					.then(data => {
 						localStorage.setItem('keyValues', JSON.stringify(data));

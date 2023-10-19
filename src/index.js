@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const readdirp = require('readdirp');
@@ -83,7 +83,7 @@ function createPromptWindow() {
 		parent: mainWindow,
 		modal: true,
 		show: false,
-		icon: path.join(__dirname, 'images/frostrose.png'),
+		icon: path.join(__dirname, '../images/frostrose.png'),
 		webPreferences: {
 			contextIsolation: true,
 			preload: path.join(__dirname, 'preload.js')
@@ -91,6 +91,12 @@ function createPromptWindow() {
 	});
 
 	promptWindow.loadURL(`file://${path.join(__dirname, 'prompt.html')}`);
+
+	// Open links in default browser
+	promptWindow.webContents.setWindowOpenHandler(({ url }) => {
+		shell.openExternal(url);
+		return { action: 'deny' };
+	});
 
 	promptWindow.once('ready-to-show', () => {
 		promptWindow.show();
@@ -155,14 +161,20 @@ async function createMainWindow() {
 	mainWindow = new BrowserWindow({
 		width: 1000,
 		height: 600,
-		icon: path.join(__dirname, 'images/frostrose.png'),
+		icon: path.join(__dirname, '../images/frostrose.png'),
 		webPreferences: {
 			contextIsolation: true,
+			nativewindowopen: true,
 			preload: path.join(__dirname, 'preload.js')
 		}
 	});
 
-	mainWindow.loadFile('index.html');
+	mainWindow.loadFile('src/index.html');
+
+	mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+		shell.openExternal(url);
+		return { action: 'deny' };
+	});
 
 	if (promptWindow) {
 		promptWindow.close();

@@ -1,15 +1,15 @@
 {
-  "name": "cookies-toolbox",
+  "name": "mod-craft",
   "version": "1.0.0",
-  "description": "A GUI to find the right Dota 2 sound name given the .vsnd of it.",
-  "main": "index.js",
+  "description": "A versatile toolkit for Dota 2 modding, enabling easy customization and development for modders.",
+  "main": "src/index.js",
   "scripts": {
     "test": "dev",
     "start": "electron .",
     "build": "electron-builder"
   },
   "author": "Cookies",
-  "license": "ISC",
+  "license": "CC-BY-NC",
   "dependencies": {
     "readdirp": "^3.6.0"
   },
@@ -18,7 +18,7 @@
     "electron-builder": "^24.6.4"
   },
   "build": {
-    "appId": "com.frostrose-studio.cookies-toolbox",
+    "appId": "com.frostrose-studio.modcraft",
     "mac": {
         "icon": "images/frostrose.png"
     },

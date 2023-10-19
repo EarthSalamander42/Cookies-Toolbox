@@ -2,12 +2,13 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Cookies Toolbox Configuration</title>
+		<title>ModCraft Configuration</title>
 
 		<style>
 			body {
 				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 				background: #1e1e1e;
+				background: linear-gradient(145deg, #1a1a1a, #2e1a2a);
 				color: #ffffff;
 				text-align: center;
 				position: relative;
@@ -22,6 +23,11 @@
 			h2 {
 				color: #ffffff;
 				font-size: 20px;
+			}
+
+			h3 {
+				color: #ffffff;
+				font-size: 16px;
 			}
 
 			p {
@@ -115,8 +121,10 @@
 
 	<body>
 		<h1>Configure Repository Path</h1>
-		<h2>This is the first time you are using Cookies Toolbox. Please enter the path of dota_vpk_updates Github repository.</h2>
-		<p>Click <a href="https://github.com/spirit-bear-productions/dota_vpk_updates" target="_blank">here</a> to open the repository in a new tab.</p>
+		<h3>This is the first time you are using ModCraft. <br>
+			This app requires dota_vpk_updates Github repository to work.<br>
+			Please enter the path of dota_vpk_updates to proceed.</h3>
+		<h3>Clone <a href="https://github.com/spirit-bear-productions/dota_vpk_updates" target="_blank">dota_vpk_updates</a></h3>
 		<input type="text" id="repoPathInput" placeholder="Enter your GitHub repository path...">
 		<button id="saveButton">Save Path</button>
 		<p id="errorText" style="color: red; display: none;">Invalid repository path, please check and try again.</p>
