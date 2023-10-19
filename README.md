@@ -11,7 +11,7 @@ An app built to help developing Dota 2 custom games.
 
 ## Installation
 
-You can build the executable yourself or download it in releases.<br><br>
+You can build the executable yourself or download it in [releases](https://github.com/EarthSalamander42/ModCraft/releases).<br><br>
 To install dependencies, run:
 ```bash
 npm install
