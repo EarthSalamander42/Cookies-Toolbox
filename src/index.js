@@ -272,12 +272,109 @@ async function generateKeyValues() {
 	createMainWindow();
 }
 
+async function generateItemKeyValues() {
+	console.log('Generate item keyvalues script started.');
+	const config = await readConfig();
+
+	if (!config.repositoryPath) {
+		sendConfigError();
+		console.error('Repository path not configured.');
+		return;
+	}
+
+	const repositoryPath = config.repositoryPath;
+	const isValid = await isRepoPathValid(repositoryPath);
+
+	if (!isValid) {
+		sendConfigError();
+		console.error('Repository path is invalid:', repositoryPath);
+		return;
+	}
+
+	let startTime = new Date().getTime();
+
+	await fs.writeFile('item_keyvalues.json', '\n');
+
+	try {
+		// read a items_game.txt and extract the item ID given a part of the item name
+		const items_game_path = path.join(repositoryPath, 'scripts/items/items_game.txt');
+		const items_game_data = await fs.readFile(items_game_path, 'utf8');
+		console.log(`Reading file items_game.txt...`);
+		const lines = items_game_data.split('\n');
+		const itemIDs = {};
+
+		for (const line of lines) {
+			if (line.startsWith('	"')) {
+				const category = line.split('"')[1];
+
+				if (category === 'items') {
+					for (let i = 0; i < lines.length; i++) {
+						if (lines[i].startsWith('		"')) {
+							const itemID = lines[i].replace(/[\t"]/g, '');
+
+							// console.log(itemID);
+							// console.log(parseInt(itemID));
+							if (parseInt(itemID) > 0) {
+								// console.log(`Found item ID ${itemID}`);
+								// itemName should be 2 lines below itemID
+								const itemName = lines[i + 2];
+
+								// Use a regular expression to match values inside double quotation marks
+								let matches = itemName.match(/"([^"]*)"/g);
+
+								// Extract the two values
+								if (matches && matches.length === 2) {
+									// Assuming there are two matches
+									let firstValue = matches[0].replace(/"/g, '');
+									let secondValue = matches[1].replace(/"/g, '');
+									
+									if (firstValue && firstValue == "name") {
+										// console.log("First Value:", firstValue);
+										// console.log("Second Value:", secondValue);
+
+										itemIDs[itemID] = secondValue;
+									}
+								} else {
+									console.log("No matches found.");
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		const endTime = new Date().getTime();
+		const timeDiff = endTime - startTime;
+		const timeDiffSeconds = timeDiff / 1000;
+		const timeDiffSecondsRounded = timeDiffSeconds.toFixed(2);
+
+		const cleanedJSON = {};
+
+		for (const key in itemIDs) {
+			const cleanedKey = key.replace(/\r/g, '');
+			cleanedJSON[cleanedKey] = itemIDs[key];
+		}
+
+		// Now write the itemIDs to a json file
+		console.log(`Writing item IDs to item_keyvalues.json...`);
+		await fs.appendFile('item_keyvalues.json', JSON.stringify(cleanedJSON, null, 2) + '\n');
+
+		console.log(`Reading all files took ${timeDiffSecondsRounded} seconds.`);
+	} catch (error) {
+		console.error('Error occurred while reading items_game.txt:', error);
+	}
+
+
+}
+
 app.whenReady().then(async () => {
 	await createConfigFileIfNotExists();
 	const has_config = await isRepositoryPathConfigured();
 
 	if (has_config) {
 		generateKeyValues();
+		generateItemKeyValues();
 	} else {
 		createPromptWindow();
 	}

@@ -3,3 +3,4 @@ package-lock.json
 src/keyvalues.json
 dist/*
 keyvalues.json
+item_keyvalues.json

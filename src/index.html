@@ -11,9 +11,8 @@
 				background: linear-gradient(145deg, #1a1a1a, #2e1a2a);
 				color: #ffffff;
 				text-align: center;
-				padding-top: 60px;
 				position: relative;
-				height: 86vh;
+				height: 97vh;
 			}
 
 			h1 {
@@ -42,7 +41,7 @@
 
 			button {
 				padding: 10px 20px;
-				background-color: #4CAF50;
+				background-color: #333;
 				color: white;
 				border: none;
 				border-radius: 4px;
@@ -52,6 +51,14 @@
 			}
 
 			button:hover {
+				background-color: #111;
+			}
+
+			.green-button {
+				background-color: #4CAF50;
+			}
+
+			.green-button:hover {
 				background-color: #45a049;
 			}
 
@@ -112,15 +119,51 @@
 			.footer img:hover {
 				transform: scale(1.2);
 			}
+
+			.tabs {
+				display: flex;
+				justify-content: space-around;
+				background-color: #333;
+				padding: 10px;
+				border-radius: 5px;
+			}
+
+			.tab {
+				color: #fff;
+				cursor: pointer;
+			}
+
+			.tab:hover {
+				text-decoration: underline;
+			}
+
+			.active-tab {
+				font-weight: bold;
+			}
 		</style>
 	</head>
 
 	<body>
-		<h1>A Dota 2 Toolkit for custom games development</h1>
-		<h2>vsnd to sound name</h2>
-		<input type="text" id="keyInput" placeholder="Enter a .vsnd file path...">
-		<button onclick="getValue()">Find sound name</button>
-		<div id="result"></div>
+		<div class="tabs">
+			<div id="Tab1" class="tab active-tab" onclick="switchTab(1)">.vsnd to sound name</div>
+			<div id="Tab2" class="tab" onclick="switchTab(2)">Item name to ID</div>
+		</div>
+
+		<div id="Feature1" class="feature-content">
+			<h1>Find the name of a sound given the sound file path</h1>
+			<!-- <h2>vsnd to sound name</h2> -->
+			<input type="text" id="keyInput" placeholder="Enter a .vsnd file path...">
+			<button class="green-button" onclick="getSoundValue()">Find sound name</button>
+			<div id="result"></div>
+		</div>
+
+		<div id="Feature2" class="feature-content" style="display: none;">
+			<h1>Find the ID of a cosmetic item give the name</h1>
+			<!-- <h2>vsnd to sound name</h2> -->
+			<input type="text" id="keyInput2" placeholder="Enter an item name...">
+			<button class="green-button" onclick="getItemValue()">Find item ID</button>
+			<div id="result2"></div>
+		</div>
 
 		<footer class="footer">
 			<div>
@@ -153,6 +196,13 @@
 						localStorage.setItem('keyValues', JSON.stringify(data));
 					})
 					.catch(error => console.error('Error fetching data:', error));
+
+				fetch('../item_keyvalues.json')
+					.then(response => response.json())
+					.then(data => {
+						localStorage.setItem('itemKeyValues', JSON.stringify(data));
+					})
+					.catch(error => console.error('Error fetching data:', error));
 			}
 
 			// Call this function to load data into local storage on page load
@@ -176,7 +226,40 @@
 				return null; // If no matching key is found
 			}
 
-			function getValue() {
+			async function findItemKeyFromValue(value) {
+				// Read the table from the JSON file
+				var table = JSON.parse(localStorage.getItem('itemKeyValues'));
+				let itemIDList = {};
+
+				// Find the key corresponding to the value in the table
+				for (var itemID in table) {
+					const itemName = table[itemID];
+
+					if (table.hasOwnProperty(itemID)) {
+						// console.log("Found item: " + itemName);
+
+						if (itemName.toLowerCase().includes(value.toLowerCase())) {
+							// console.log("Found item 2: " + itemName);
+							itemIDList[itemID] = itemName;
+						}
+
+						// if (itemName === value) {
+						// 	// console.log("Found item 2: " + itemName);
+						// 	itemIDList[itemID] = itemName;
+						// }
+					}
+				}
+
+				if (Object.keys(itemIDList).length === 1) {
+					return Object.keys(itemIDList)[0];
+				} else if (Object.keys(itemIDList).length > 1) {
+					return itemIDList;
+				}
+
+				return null; // If no matching key is found
+			}
+
+			function getSoundValue() {
 				var value = document.getElementById("keyInput").value;
 				var key = findKeyFromValue(value);
 				var resultElement = document.getElementById("result");
@@ -193,6 +276,54 @@
 					resultElement.appendChild(copyButton);
 				} else {
 					resultElement.innerText = "Value not found";
+				}
+			}
+
+			async function getItemValue() {
+				var value = document.getElementById("keyInput2").value;
+				var key = await findItemKeyFromValue(value);
+				var resultElement = document.getElementById("result2");
+
+				if (key) {
+					if (typeof(key) === 'object') {
+						resultElement.innerHTML = `<p class="value"> Multiple items found for '<strong>${value}</strong>':</p>`;
+
+						for (var itemID in key) {
+						    const itemName = key[itemID];
+						    const itemElement = document.createElement("div");
+
+						    // Create a button
+						    const copyButton = document.createElement("button");
+						    copyButton.innerHTML = `<span style="color: #f39c12;">${itemID}</span>: ${itemName}`;
+
+						    // Set up a click event handler for the button
+						    copyButton.addEventListener("click", function() {
+						        // Copy the itemID to the clipboard
+						        copyToClipboard(itemID);
+							
+						        // Optionally provide user feedback
+						        // alert("Item ID copied to clipboard!");
+						    });
+
+						    // Append the button and item details to the itemElement
+						    itemElement.appendChild(copyButton);
+
+						    // Append the itemElement to the resultElement
+						    resultElement.appendChild(itemElement);
+						}
+					} else {
+						resultElement.innerHTML = `<p class="value">The key for value '<strong>${value}</strong>' is: <span style="color: #f39c12;">${key}</span></p>`;
+
+						var copyButton = document.createElement("button");
+						copyButton.innerHTML = "Copy to clipboard";
+						copyButton.onclick = function() {
+							copyToClipboard(key);
+						};
+					}
+
+					resultElement.appendChild(copyButton);
+				} else {
+					resultElement.innerText = "Item ID not found";
 				}
 			}
 
@@ -232,6 +363,25 @@
 				link.setAttribute('target', '_blank');
 				link.setAttribute('href', url);
 				link.click();
+			}
+
+			function switchTab(nTabID) {
+				let i = 1;
+
+				while (document.getElementById('Feature' + i)) {
+					const tabElement = document.getElementById('Feature' + i);
+					const tabButton = document.getElementById('Tab' + i);
+
+					if (i === nTabID) {
+						tabElement.style.display = 'block';
+						tabButton.classList.add('active-tab');
+					} else {
+						tabElement.style.display = 'none';
+						tabButton.classList.remove('active-tab');
+					}
+
+					i++;
+				}
 			}
 		</script>
 	</body>
